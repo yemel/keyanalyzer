@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Keyword Analyzer</title>
+
+    <!-- Le styles -->
+    <link rel="stylesheet" href="http://todomvc.com/architecture-examples/backbone/bower_components/todomvc-common/base.css">
+    <style>
+      #todoapp h1 {font-size: 63px; top: -110px;}
+      #todo-count {width: 100%; text-align: center; font-style: italic;}
+      #language { position: absolute; top: 32px; right: 15px; z-index: 4; width: 96px; overflow: hidden;}
+      #language select { border: none; background: none; font-size: 24px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #aaa; font-style: italic; outline: none;}
+      #todo-list li .destroy {display: block; top: 20px; right: 20px; color: #8FC996; width: 150px; text-align: right; font-size: 18px;}
+      #todo-list li .destroy:after {content: none;}
+      #todo-list li .destroy:hover {text-shadow: none; -webkit-transform: none; -moz-transform: none; -ms-transform: none; -o-transform: none; transform: none;}
+      .hide {display: none;}
+      #todo-list li {font-size: 18px;}
+    </style>
+  </head>
+  <body>
+    <section id="todoapp">
+      <header id="header">
+        <h1>Keyword Analyzer</h1>
+        <form id="form" action="post">
+          {% csrf_token %}
+          <div id="language"><select name="language"><option value="en">English</option><option value="es">Spanish</option></select></div>
+          <input id="new-todo" name="keyword" placeholder="Keyword to analyze" autofocus>
+        </form>
+      </header>
+      <section id="main">
+        <ul id="todo-list"></ul>
+      </section>
+      <footer id="footer">
+        <span id="todo-count"></span>
+      </footer>
+    </section>
+    <footer id="info">
+      <p>Written by <a href="https://github.com/addyosmani">Yemel Jardi</a></p>
+      <p>Style from <a href="http://todomvc.com">TodoMVC</a></p>
+    </footer>
+
+    <script type="text/template" id="item-template">
+      <li>
+        <div class="view">
+          <label><%= title %></label>
+          <span class="destroy">rank: <%= rank %></span>
+        </div>
+      </li>
+    </script>
+
+    <script type="text/template" id="item-loading">
+      <li>
+        <div class="view">
+          <label>Loading results...</label>
+          <span class="destroy"></span>
+        </div>
+      </li>
+    </script>
+
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="//ajax.cdnjs.com/ajax/libs/underscore.js/1.1.6/underscore-min.js"></script>
+    <script>
+      $(function(){
+        $('form').submit(function(){
+          if(!$('#new-todo').val()){
+            $('#todo-list').html('');
+            $('#todo-count').html('Insert a keyword and we will lookup interesting topics related to it');
+             return false;
+          }
+
+          var data = $('form').serialize();
+          var template = _.template($('#item-template').html());
+
+          // Disable inputs
+          $('input, select').attr('disabled', 'disabled');
+          $('#todo-list').html($('#item-loading').html());
+
+          $.post('/analyze/', data, function(result){
+            $('#todo-list').html('');
+            $('#todo-list').addClass('hide');
+            _.each(result, function(r){
+              var item = template({title: r[0], rank: r[1]});
+              $('#todo-list').append(item);
+            });
+
+            $('#todo-list').slideDown();
+            $('#todo-count').html('We found <strong>'+ result.length +'</strong> topics related to the keyword <strong>'+ $('#new-todo').val() +'</strong>');
+          });
+
+          // Reenable inputs
+          $('input, select').removeAttr('disabled');
+
+          return false;
+        });
+
+        $('form').submit();
+      });
+    </script>
+
+  </body>
+</html>
