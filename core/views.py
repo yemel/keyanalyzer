@@ -28,7 +28,7 @@ class SearchForm(forms.Form):
 
 
 def home(request):
-    ideas = Keyword.objects.order_by('hits')[:7]
+    ideas = Keyword.objects.order_by('-hits')[:30]
     return render(request, 'index.html', {'ideas': ideas})
 
 
